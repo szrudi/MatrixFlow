@@ -2,7 +2,7 @@
 
 MatrixFlow is a fully parametric, airflow-optimized generator for creating adapters between pipes, hoses, and HVAC ducts of different shapes and sizes.
 
-[Try it online on MakerWorld!](#)
+[Try it online on MakerWorld!](https://makerworld.com/en/models/2403509-matrixflow-universal-parametric-duct-adapter)
 
 ## The Problem
 
@@ -51,6 +51,13 @@ This script uses a custom Matrix-based Sweep Engine to generate geometry:
 | Fit Mode | Standard = adapter goes INSIDE the pipe. Slip Over = adapter goes OVER the pipe. |
 | Offsets (X/Y) | Physical displacement of the top opening relative to the bottom. |
 | Exit Angles | Rotates the top opening to align with angled pipes. |
+
+## Why this exists
+
+I originally found a customizable adapter online that looked promising, but I was pissed that it was closed-source. Basic parametric utilities like this should be open and accessible to everyone.
+
+So, I decided to build my own version from scratch—completely open-source, mathematically superior, and free for the community to use and improve.
+
 
 ## Disclaimer
 
