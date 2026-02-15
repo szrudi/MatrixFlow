@@ -32,14 +32,14 @@ This script uses a custom Matrix-based Sweep Engine to generate geometry:
 
 ## Usage (Local)
 
-1. Download and install OpenSCAD.
+1. Download and install [OpenSCAD](https://openscad.org/downloads.html#snapshots).
 > [!NOTE]
-> For fastest rendering, use the latest Development Snapshot and enable "Manifold" in Preferences -> Features.
+> For fastest rendering, use the latest Development Snapshot (2026.02+). The "Manifold" backend is enabled by default in `Preferences > Advanced > 3D Rendering`.
 
-2. Open MatrixFlow_adapter.scad.
-1. Open the Customizer panel (Window -> Customizer).
-1. Adjust parameters to fit your needs.
-1. Press F6 to Render, then F7 to export as STL.
+2. Open `MatrixFlow_adapter.scad`
+1. Open the Customizer panel (`Window -> Customizer`)
+1. Adjust parameters to fit your needs
+1. Press **F6** to Render, then **F7** to export as STL
 
 ## Parameter Guide
 
@@ -51,6 +51,12 @@ This script uses a custom Matrix-based Sweep Engine to generate geometry:
 | Fit Mode | Standard = adapter goes INSIDE the pipe. Slip Over = adapter goes OVER the pipe. |
 | Offsets (X/Y) | Physical displacement of the top opening relative to the bottom. |
 | Exit Angles | Rotates the top opening to align with angled pipes. |
+
+## Disclaimer
+
+You can twist it too much!
+
+While the MatrixFlow engine is robust, physics still applies. If you input extreme offsets or aggressive angles over a very short distance, the geometry may become self-intersecting or "kinked." The model will do its absolute best to calculate a nice, smooth transition from one end to the other, but keep your transitions reasonable for the best airflow results.
 
 ## License
 
