@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * MATRIXFLOW: UNIVERSAL PARAMETRIC DUCT ADAPTER
+ * MATRIXFLOW: UNIVERSAL PARAMETRIC DUCT ADAPTER LIBRARY
  * ==============================================================================
  * FEATURES:
  * 1. MATRIX FRAME ENGINE:
@@ -25,63 +25,59 @@
  * ==============================================================================
  */
 
-/* [Metadata] */
-Model_Version = "3.2";
-
-/* [General Dimensions] */
-// Total vertical height of the transition (excluding straight extensions)
-transition_height = 160; // [10:500]
-// Thickness of the duct walls
-wall_thickness = 3.0; // [0.4:10]
-// Stiffness of the curve. Lower (0.3-0.5) for tight 90deg elbows. Higher (0.6-0.8) for gentle S-bends.
-curve_tension = .6; // [0.1:0.05:2.0]
-// Render quality (Higher = smoother but slower). Use 20 for draft, 60+ for export.
-smoothness = 20; // [20:200]
-// Polygon resolution for circles
-fn = 64; // [32:256]
-
-/* [Top Shape (Output)] */
-// Shape of the top opening
-top_shape = "rectangle"; // [circle, rectangle]
-// Diameter (if circle) or Width (if rectangle)
-top_width = 90; // [10:500]
-// Depth (only used if rectangle)
-top_depth = 80; // [10:500]
-// Corner radius (only used if rectangle, 0 = sharp)
-top_corner_radius = 10; // [0:100]
-// Length of straight section at the top
-top_extension = 30; // [0:200]
-// Fit mode: 'standard' fits INSIDE a duct. 'slip_over' fits OVER a pipe.
-top_fit = "standard"; // [standard, slip_over]
-
-/* [Bottom Shape (Input)] */
-// Shape of the bottom opening
-bottom_shape = "circle"; // [circle, rectangle]
-// Diameter (if circle) or Width (if rectangle)
-bottom_width = 100; // [10:500]
-// Depth (only used if rectangle)
-bottom_depth = 70; // [10:500]
-// Corner radius (only used if rectangle, 0 = sharp)
-bottom_corner_radius = 0; // [0:100]
-// Length of straight section at the bottom
-bottom_extension = 30; // [0:200]
-// Fit mode: 'standard' fits INSIDE a duct. 'slip_over' fits OVER a pipe.
-bottom_fit = "slip_over"; // [standard, slip_over]
-
-/* [Offsets & Alignment] */
-// Shift the top center along X axis
-offset_x = 20; // [-500:500]
-// Shift the top center along Y axis
-offset_y = 60; // [-500:500]
-
-/* [Exit Angles] */
-// Rotate top connection around Y axis (Left/Right tilt)
-angle_y = 30; // [-90:90]
-// Rotate top connection around X axis (Forward/Back tilt)
-angle_x = 10; // [-90:90]
-
-/* [Hidden] */
-$fn = fn;
+matrixflow_adapter(
+    /* [General Dimensions] */
+    // Total vertical height of the transition (excluding straight extensions)
+    transition_height = 160, // [10:500]
+    // Thickness of the duct walls
+    wall_thickness = 3.0, // [0.4:10]
+    // Stiffness of the curve. Lower (0.3-0.5) for tight 90deg elbows. Higher (0.6-0.8) for gentle S-bends.
+    curve_tension = .5, // [0.1:0.05:2.0]
+    // Render quality (Higher = smoother but slower). Use 20 for draft, 60+ for export.
+    smoothness = 20, // [20:200]
+    // Polygon resolution for circles
+    fn = 64, // [32:256]
+    
+    /* [Top Shape (Output)] */
+    // Shape of the top opening
+    top_shape = "rectangle", // [circle, rectangle]
+    // Diameter (if circle) or Width (if rectangle)
+    top_width = 90, // [10:500]
+    // Depth (only used if rectangle)
+    top_depth = 80, // [10:500]
+    // Corner radius (only used if rectangle, 0 = sharp)
+    top_corner_radius = 10, // [0:100]
+    // Length of straight section at the top
+    top_extension = 30, // [0:200]
+    // Fit mode: 'standard' fits INSIDE a duct. 'slip_over' fits OVER a pipe.
+    top_fit = "standard", // [standard, slip_over]
+    
+    /* [Bottom Shape (Input)] */
+    // Shape of the bottom opening
+    bottom_shape = "circle", // [circle, rectangle]
+    // Diameter (if circle) or Width (if rectangle)
+    bottom_width = 100, // [10:500]
+    // Depth (only used if rectangle)
+    bottom_depth = 70, // [10:500]
+    // Corner radius (only used if rectangle, 0 = sharp)
+    bottom_corner_radius = 0, // [0:100]
+    // Length of straight section at the bottom
+    bottom_extension = 30, // [0:200]
+    // Fit mode: 'standard' fits INSIDE a duct. 'slip_over' fits OVER a pipe.
+    bottom_fit = "slip_over", // [standard, slip_over]
+    
+    /* [Offsets & Alignment] */
+    // Shift the top center along X axis
+    offset_x = 20, // [-500:500]
+    // Shift the top center along Y axis
+    offset_y = 60, // [-500:500]
+    
+    /* [Exit Angles] */
+    // Rotate top connection around Y axis (Left/Right tilt)
+    angle_y = 30, // [-90:90]
+    // Rotate top connection around X axis (Forward/Back tilt)
+    angle_x = 10, // [-90:90]
+);
 
 // ==============================================================================
 // VECTOR MATH HELPERS
@@ -117,7 +113,30 @@ module shape_universal(w, d, r) {
     else offset(r = actual_r) square([w - 2 * actual_r, d - 2 * actual_r], center = true);
 }
 
-module duct_shell(is_hole) {
+module duct_shell(
+    transition_height,
+    wall_thickness,
+    curve_tension,
+    smoothness,
+    fn,
+    top_shape,
+    top_width,
+    top_depth,
+    top_corner_radius,
+    top_extension,
+    top_fit,
+    bottom_shape,
+    bottom_width,
+    bottom_depth,
+    bottom_corner_radius,
+    bottom_extension,
+    bottom_fit,
+    offset_x,
+    offset_y,
+    angle_x,
+    angle_y,
+    is_hole
+) {
     // Offset Logic
     b_offset_val = (bottom_fit == "slip_over") ? (is_hole ? 0 : wall_thickness) : (is_hole ? -wall_thickness : 0);
     t_offset_val = (top_fit == "slip_over") ? (is_hole ? 0 : wall_thickness) : (is_hole ? -wall_thickness : 0);
@@ -163,12 +182,12 @@ module duct_shell(is_hole) {
     if (bottom_extension > 0) {
         translate([0, 0, -bottom_extension - cut_length])
         linear_extrude(height = bottom_extension + cut_length) {
-            offset(delta = b_offset_val) shape_universal(b_w, b_d, b_r);
+            offset(delta = b_offset_val) shape_universal(b_w, b_d, b_r, $fn=fn);
         }
     } else if (is_hole) {
         translate([0, 0, -cut_length])
         linear_extrude(height = cut_length + 0.1)
-            offset(delta = b_offset_val) shape_universal(b_w, b_d, b_r);
+            offset(delta = b_offset_val) shape_universal(b_w, b_d, b_r, $fn=fn);
     }
 
     // --- 3. MATRIX SWEEP ---
@@ -217,8 +236,8 @@ module duct_shell(is_hole) {
         off2 = lerp(b_offset_val, t_offset_val, t2);
 
         hull() {
-            multmatrix(m1) linear_extrude(0.01) offset(delta = off1) shape_universal(w1, d1, r1);
-            multmatrix(m2) linear_extrude(0.01) offset(delta = off2) shape_universal(w2, d2, r2);
+            multmatrix(m1) linear_extrude(0.01) offset(delta = off1) shape_universal(w1, d1, r1, $fn=fn);
+            multmatrix(m2) linear_extrude(0.01) offset(delta = off2) shape_universal(w2, d2, r2, $fn=fn);
         }
     }
 
@@ -243,34 +262,84 @@ module duct_shell(is_hole) {
     union() {
         if (top_extension > 0) {
             linear_extrude(height = top_extension + cut_length + 0.01) {
-                offset(delta = t_offset_val) shape_universal(t_w, t_d, t_r);
+                offset(delta = t_offset_val) shape_universal(t_w, t_d, t_r, $fn=fn);
             }
         } else if (is_hole) {
             linear_extrude(height = cut_length + 0.01) {
-                offset(delta = t_offset_val) shape_universal(t_w, t_d, t_r);
+                offset(delta = t_offset_val) shape_universal(t_w, t_d, t_r, $fn=fn);
             }
         }
     }
 }
 
-difference() {
-    duct_shell(is_hole = false);
-    duct_shell(is_hole = true);
+// ==============================================================================
+// MAIN MODULE
+// ==============================================================================
+
+module matrixflow_adapter(
+    // General Dimensions
+    transition_height = 160,
+    wall_thickness = 3.0,
+    curve_tension = 0.35,
+    smoothness = 20,
+    fn = 64,
+    // Top Shape (Output)
+    top_shape = "rectangle",
+    top_width = 90,
+    top_depth = 80,
+    top_corner_radius = 10,
+    top_extension = 30,
+    top_fit = "standard",
+    // Bottom Shape (Input)
+    bottom_shape = "circle",
+    bottom_width = 100,
+    bottom_depth = 70,
+    bottom_corner_radius = 0,
+    bottom_extension = 30,
+    bottom_fit = "slip_over",
+    // Offsets & Alignment
+    offset_x = 20,
+    offset_y = 60,
+    // Exit Angles
+    angle_x = 10,
+    angle_y = 30,
+    // Visualization
+    show_path = false
+) {
+    difference() {
+        duct_shell(
+            transition_height, wall_thickness, curve_tension, smoothness, fn,
+            top_shape, top_width, top_depth, top_corner_radius, top_extension, top_fit,
+            bottom_shape, bottom_width, bottom_depth, bottom_corner_radius, bottom_extension, bottom_fit,
+            offset_x, offset_y, angle_x, angle_y,
+            is_hole = false
+        );
+        duct_shell(
+            transition_height, wall_thickness, curve_tension, smoothness, fn,
+            top_shape, top_width, top_depth, top_corner_radius, top_extension, top_fit,
+            bottom_shape, bottom_width, bottom_depth, bottom_corner_radius, bottom_extension, bottom_fit,
+            offset_x, offset_y, angle_x, angle_y,
+            is_hole = true
+        );
+    }
+
+    // Visual Helper: Path Points
+    if (show_path) {
+        color("red") {
+            p0=[0,0,0];
+            p3=[offset_x, offset_y, transition_height];
+            dist_linear = norm(p3 - p0);
+            base_scale = (transition_height + dist_linear) / 2;
+            handle_len = base_scale * curve_tension;
+            vec_normal_end = rotate_vec([0, 0, 1], [angle_x, angle_y, 0]);
+            p1=[0,0,handle_len];
+            p2 = p3 - (vec_normal_end * handle_len);
+
+            for(i=[0:20]) {
+                t = i/20;
+                translate(bezier(t, p0, p1, p2, p3)) sphere(r=2, $fn=16);
+            }
+        }
+    }
 }
 
-// Visual Helper: Path Points
-%union() {
-   p0=[0,0,0];
-   p3=[offset_x, offset_y, transition_height];
-   dist_linear = norm(p3 - p0);
-   base_scale = (transition_height + dist_linear) / 2;
-   handle_len = base_scale * curve_tension;
-   vec_normal_end = rotate_vec([0, 0, 1], [angle_x, angle_y, 0]);
-   p1=[0,0,handle_len];
-   p2 = p3 - (vec_normal_end * handle_len);
-
-   for(i=[0:20]) {
-       t = i/20;
-       translate(bezier(t, p0, p1, p2, p3)) sphere(r=2);
-   }
-}
