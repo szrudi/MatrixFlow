@@ -9,6 +9,8 @@ use <../matrixflow.scad>
 transition_height = 60; // [10:500]
 wall_thickness = 2.0; // [0.4:10]
 curve_tension = 0.5; // [0.1:0.05:2.0]
+straighten_path = 0.5; // [0.0:0.05:1.0]
+smart_easing = true;
 smoothness = 30; // [20:200]
 fn = 64; // [32:256]
 
@@ -43,6 +45,8 @@ matrixflow_adapter(
     transition_height = transition_height,
     wall_thickness = wall_thickness,
     curve_tension = curve_tension,
+    straighten_path = straighten_path,
+    smart_easing = smart_easing,
     smoothness = smoothness,
     fn = fn,
     top_shape = top_shape,
