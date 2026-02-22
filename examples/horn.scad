@@ -1,6 +1,6 @@
 /**
- * FUNNEL ADAPTER
- * Funnel configuration for general purpose use
+ * Horn shape
+ * For testing eccentric path straightening
  */
 
 use <../matrixflow.scad>
@@ -8,7 +8,9 @@ use <../matrixflow.scad>
 /* [General Dimensions] */
 transition_height = 100; // [10:500]
 wall_thickness = 2.0; // [0.4:10]
-curve_tension = 0.5; // [0.1:0.05:2.0]
+curve_tension = 0.4; // [0.1:0.05:2.0]
+straighten_path = 0.4; // [0.0:0.05:1.0]
+smart_easing = false;
 smoothness = 30; // [20:200]
 fn = 64; // [32:256]
 
@@ -43,6 +45,8 @@ matrixflow_adapter(
     transition_height = transition_height,
     wall_thickness = wall_thickness,
     curve_tension = curve_tension,
+    straighten_path = straighten_path,
+    smart_easing = smart_easing,
     smoothness = smoothness,
     fn = fn,
     top_shape = top_shape,
