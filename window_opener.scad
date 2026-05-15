@@ -8,18 +8,24 @@
  *     - case_body          Electronics enclosure (Lolin D1 Mini V4 + DRV8871 +
  *                          Mini360 buck), wall-mount tabs, side cutouts.
  *     - case_lid           Friction-fit lid for the enclosure.
- *     - actuator_bracket   Saddle clamp that holds a cylindrical 12 V linear
- *                          actuator parallel to the window lever (the 90°
- *                          rotated layout from the project notes).
- *     - lever_clevis       U-fork that bolts to the actuator rod-end (double
- *                          shear M5) and grabs the window lever. Print flat.
+ *     - actuator_bracket   Flat plate that picks up the actuator's integrated
+ *                          M3 foot screws; mounted vertical so the rod hangs
+ *                          downward in front of the lever.
+ *     - lever_clevis       Straight flat fork that pins to the rod-end tab via
+ *                          an M3 pivot and grabs the lever directly under the
+ *                          rod (use when the lever sits below the rod-end).
+ *     - lever_arm_l        L-shaped variant of the same fork. The horizontal
+ *                          leg clears the depth offset between rod-end and
+ *                          lever; the vertical leg drops/rises to meet the
+ *                          lever sitting behind the actuator body.
  *     - preview_assembly   Soft-rendered exploded view, for visual sanity only.
  *
  *   Print orientation:
  *     - case_body          Open side up (no supports for shallow cutouts).
  *     - case_lid           Flat.
- *     - actuator_bracket   Saddle opening up.
+ *     - actuator_bracket   Plate flat on the bed.
  *     - lever_clevis       FLAT on the bed (CF-PETG layers in tension).
+ *     - lever_arm_l        FLAT on the bed (the L sits in the print's X-Y plane).
  *
  *   Material assumption: CF-PETG with 4+ perimeters on the clevis. M5 bolt
  *   through the rod-end with washers on each side per the project rules.
@@ -28,7 +34,7 @@
 
 /* [Render] */
 // Which part to render. Use "preview_assembly" for a rough exploded view.
-part = "preview_assembly"; // [case_body, case_lid, actuator_bracket, lever_clevis, preview_assembly]
+part = "preview_assembly"; // [case_body, case_lid, actuator_bracket, lever_clevis, lever_arm_l, preview_assembly]
 // Polygon resolution for circles.
 fn = 64; // [24:256]
 
@@ -172,6 +178,20 @@ clevis_pinch_slit_w = 1.5;
 clevis_pinch_screw_d = 3.4;
 clevis_pinch_nut_af  = 5.6;
 clevis_pinch_nut_th  = 2.6;
+
+/* [Offset Arm (lever_arm_l) — L-shape] */
+// Use this part instead of the straight clevis when the lever sits BEHIND the
+// actuator body rather than directly below the rod. Coordinate convention
+// (print orientation, arm lies flat on bed):
+//   +X = depth direction in use (front-to-back, away from the actuator)
+//   +Y = vertical direction in use (toward the lever's grip point)
+//   +Z = fork pin axis (perpendicular to glass in use)
+// Set arm_height to 0 to fall back to a straight arm.
+arm_depth  = 35;   // [10:200] horizontal leg length (depth from rod axis to bend)
+arm_height = 45;   // [0:200]  vertical leg length (rise/drop from bend to lever)
+arm_width  = 12;   // [6:30]   thickness of each leg in its perpendicular direction
+// Optional gusset radius at the inside of the bend (helps spread load).
+arm_knee_r = 8;    // [0:30]
 
 $fn = fn;
 
@@ -449,6 +469,103 @@ module lever_clevis() {
 }
 
 // =============================================================================
+// PART: LEVER ARM (L-shape variant)
+// =============================================================================
+
+module lever_arm_l() {
+    // Same fork as lever_clevis, but the arm body is an L: a horizontal leg of
+    // length arm_depth in +X, then a vertical leg of length arm_height in +Y.
+    // The lever attachment sits at (arm_depth, arm_height).
+
+    body_z     = clevis_arm_t;
+    prong_d    = clevis_arm_t * 2.2;
+    prong_back = prong_d;
+    yoke_clear = max(prong_d, clevis_fork_gap) * 0.6;
+    prong_z    = clevis_arm_t + clevis_fork_gap;
+    prong_y    = (clevis_fork_gap + prong_d) / 2;
+
+    knee = [arm_depth, 0];
+    end  = [arm_depth, arm_height];
+
+    difference() {
+        union() {
+            // Horizontal leg: hull from the fork base (at yoke_clear, ±prong_y)
+            // to the knee (at arm_depth, ±arm_width/2).
+            hull() {
+                translate([yoke_clear, -prong_y, 0])
+                    cylinder(d = prong_d, h = body_z);
+                translate([yoke_clear,  prong_y, 0])
+                    cylinder(d = prong_d, h = body_z);
+                translate([knee.x, -arm_width/2, 0])
+                    cylinder(d = arm_width * 0.6, h = body_z);
+                translate([knee.x,  arm_width/2, 0])
+                    cylinder(d = arm_width * 0.6, h = body_z);
+            }
+
+            // Vertical leg: hull from the knee region up to the lever end.
+            // Only emitted if there's actually a vertical segment.
+            if (arm_height > 0) {
+                hull() {
+                    translate([knee.x - arm_width/2, 0, 0])
+                        cylinder(d = arm_width * 0.6, h = body_z);
+                    translate([knee.x + arm_width/2, 0, 0])
+                        cylinder(d = arm_width * 0.6, h = body_z);
+                    translate([end.x, end.y, 0])
+                        cylinder(d = clevis_body_w, h = body_z);
+                }
+            }
+
+            // Inside-corner gusset (a quarter disk filling the bend).
+            if (arm_knee_r > 0 && arm_height > 0) {
+                translate([knee.x - arm_knee_r, arm_knee_r, 0])
+                    difference() {
+                        cube([arm_knee_r, arm_knee_r, body_z]);
+                        translate([0, 0, -0.1])
+                            cylinder(r = arm_knee_r, h = body_z + 0.2);
+                    }
+            }
+
+            // Fork prongs at (0, ±prong_y).
+            for (sy = [-prong_y, prong_y])
+                translate([0, sy, 0])
+                    hull() {
+                        cylinder(d = prong_d, h = prong_z);
+                        translate([-prong_back, 0, 0])
+                            cylinder(d = prong_d, h = prong_z);
+                        translate([yoke_clear, 0, 0])
+                            cylinder(d = prong_d, h = body_z);
+                    }
+        }
+
+        // Pivot bolt hole through both prongs (Z direction).
+        translate([0, 0, -0.5])
+            cylinder(d = clevis_pivot_d + bolt_gap, h = prong_z + 1);
+
+        // Lever-end attachment at the tip of the L.
+        end_pos = (arm_height > 0) ? end : knee;
+        if (clevis_lever_mode == "thru_bolt") {
+            translate([end_pos.x, end_pos.y, -0.5])
+                cylinder(d = clevis_lever_hole_d + bolt_gap, h = body_z + 1);
+        } else {
+            // knob_clamp: bore + slit + cross-bolt + nut trap. Slit opens in +Y.
+            translate([end_pos.x, end_pos.y, -0.5])
+                cylinder(d = clevis_knob_d + slip_gap, h = body_z + 1);
+            translate([end_pos.x - clevis_pinch_slit_w/2, end_pos.y, -0.5])
+                cube([clevis_pinch_slit_w, clevis_body_w, body_z + 1]);
+            translate([end_pos.x, end_pos.y + clevis_knob_d/2 + 3, body_z/2])
+                rotate([0, 90, 0])
+                    cylinder(d = clevis_pinch_screw_d, h = clevis_body_w * 2,
+                             center = true);
+            translate([end_pos.x + clevis_body_w/2 - clevis_pinch_nut_th,
+                       end_pos.y + clevis_knob_d/2 + 3, body_z/2])
+                rotate([0, 90, 0])
+                    cylinder(d = clevis_pinch_nut_af / cos(30),
+                             h = clevis_pinch_nut_th, $fn = 6);
+        }
+    }
+}
+
+// =============================================================================
 // PREVIEW ASSEMBLY (visual only — not printable)
 // =============================================================================
 
@@ -483,14 +600,18 @@ module preview_assembly() {
 
     // Lever clevis solo, off to the side, in print orientation.
     translate([0, -80, 0]) lever_clevis();
+
+    // L-shape arm solo, further along, in print orientation.
+    translate([0, -160, 0]) lever_arm_l();
 }
 
 // =============================================================================
 // DISPATCH
 // =============================================================================
 
-if (part == "case_body")          case_body();
-else if (part == "case_lid")      case_lid();
+if (part == "case_body")             case_body();
+else if (part == "case_lid")         case_lid();
 else if (part == "actuator_bracket") actuator_bracket();
-else if (part == "lever_clevis")  lever_clevis();
-else                              preview_assembly();
+else if (part == "lever_clevis")     lever_clevis();
+else if (part == "lever_arm_l")      lever_arm_l();
+else                                 preview_assembly();
